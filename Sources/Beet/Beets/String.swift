@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 
 /**
  * De/Serializes a UTF8 string of a particular size.
