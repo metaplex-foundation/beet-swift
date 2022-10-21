@@ -333,7 +333,9 @@ public class bool: ScalarFixedSizeBeet {
         } else {
             data = 0.data()
         }
-        advanced.replaceSubrange(offset..<offset+data.count, with: data)
+        if offset > offset+data.count {
+            advanced.replaceSubrange(offset..<offset+data.count, with: data)
+        }
         buf = advanced
     }
 
