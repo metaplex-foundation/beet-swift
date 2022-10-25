@@ -102,9 +102,8 @@ public class u64: ScalarFixedSizeBeet {
     }
 
     public func read<T>(buf: Data, offset: Int) -> T {
-
-        let x = buf.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-            return rawPtr.load(fromByteOffset: offset, as: UInt64.self)
+        let x = Data(buf.bytes[offset..<(offset + Int(byteSize))]).withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
+            return rawPtr.load(fromByteOffset: 0, as: UInt64.self)
         })
         debugPrint("read \(description): \(x)")
         return x as! T
@@ -333,7 +332,9 @@ public class bool: ScalarFixedSizeBeet {
         } else {
             data = 0.data()
         }
-        advanced.replaceSubrange(offset..<offset+data.count, with: data)
+        if offset > offset+data.count {
+            advanced.replaceSubrange(offset..<offset+data.count, with: data)
+        }
         buf = advanced
     }
 
