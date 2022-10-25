@@ -46,6 +46,7 @@ public class coptionNone: ScalarFixedSizeBeet {
     }
 
     public func read<T>(buf: Data, offset: Int) -> T {
+        debugPrint("read \(description): \(NONE)")
         return Optional<Any>.none as! T
     }
 }
@@ -97,8 +98,10 @@ class coptionSome: ScalarFixedSizeBeet {
     func read<T>(buf: Data, offset: Int) -> T {
         switch inner.value {
         case .scalar(let type):
+            debugPrint("read \(description): \(type)")
             return type.read(buf: buf, offset: offset + 1)
         case .collection(let type):
+            debugPrint("read \(description): \(type)")
             return type.read(buf: buf, offset: offset + 1)
         }
     }
