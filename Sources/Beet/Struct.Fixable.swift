@@ -133,8 +133,7 @@ public class FixableBeetArgsStruct<Class>: FixableBeetStruct<Args> {
     }
 
     override public func toFixedFromValue(val: Any) -> FixedSizeBeet {
-        let value = val as! Class
-        let mirror = mirrored(value: value)
+        let mirror = mirrored(value: val)
 
         var dictionary: [AnyHashable: Any] = [:]
         for param in mirror.params {
