@@ -240,21 +240,26 @@ public class DataEnum<E: ConstructableWithDiscriminator>: FixableBeet {
 
 public func mirrored(value: Any) -> (label: String, params: [String: Any]) {
     let reflection = Mirror(reflecting: value)
-    guard reflection.displayStyle == .enum,
-          let associated = reflection.children.first else {
-        return ("\(value)", [:])
+
+    if reflection.displayStyle == .dictionary, let dictionary = value as? [String: Any] {
+        return ("\(value)", dictionary)
     }
-    let values = Mirror(reflecting: associated.value).children
-    var valuesArray = [String: Any]()
-    if values.count > 0 {
-        for case let item in values where item.label != nil {
-            valuesArray[item.label!] = item.value
+
+    if reflection.displayStyle == .enum, let associated = reflection.children.first {
+        let values = Mirror(reflecting: associated.value).children
+        var valuesArray = [String: Any]()
+        if values.count > 0 {
+            for case let item in values where item.label != nil {
+                valuesArray[item.label!] = item.value
+            }
+            return (associated.label!, valuesArray)
+        } else {
+            valuesArray[associated.label!] = associated.value
+            return (associated.label!, valuesArray)
         }
-        return (associated.label!, valuesArray)
-    } else {
-        valuesArray[associated.label!] = associated.value
-        return (associated.label!, valuesArray)
     }
+
+    fatalError("Unsupported reflection type. Please add support for the appropriate `displayStyle`.")
 }
 
 public enum EnumsTypeMapKey: String {
