@@ -257,9 +257,9 @@ public func mirrored(value: Any) -> (label: String, params: [String: Any]) {
             valuesArray[associated.label!] = associated.value
             return (associated.label!, valuesArray)
         }
+    } else {
+        return ("\(value)", [:])
     }
-
-    fatalError("Unsupported reflection type. Please add support for the appropriate `displayStyle`.")
 }
 
 public enum EnumsTypeMapKey: String {
