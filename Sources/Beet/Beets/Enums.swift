@@ -245,6 +245,16 @@ public func mirrored(value: Any) -> (label: String, params: [String: Any]) {
         return ("\(value)", dictionary)
     }
 
+    if reflection.displayStyle == .struct {
+        var dictionary = [String: Any]()
+        for child in reflection.children {
+            if let label = child.label {
+                dictionary[label] = child.value
+            }
+        }
+        return ("\(value)", dictionary)
+    }
+
     if reflection.displayStyle == .enum, let associated = reflection.children.first {
         let values = Mirror(reflecting: associated.value).children
         var valuesArray = [String: Any]()
