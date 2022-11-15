@@ -78,18 +78,21 @@ public class FixableBeetStruct<Class>: FixableBeet {
     }
 
     public func toFixedFromValue(val: Any) -> FixedSizeBeet {
-        let value = val as! Args
-        let argsKeys = value.keys
-        var fixedFields: [FixedBeetField] = []
+        let mirror = mirrored(value: val)
 
-        for i in 0..<self.fields.count {
-            let (key, beet) = self.fields[i]
-            assert(argsKeys.contains {
-                $0 == key
-            }, "Value with keys [ \(argsKeys) ] should include struct key '\(key)' but doesn't.")
-            let argValue = value[key]
-            let fixedBeet = fixBeetFromValue(beet: beet, val: argValue)
-            fixedFields.append((key, fixedBeet))
+        var dictionary: [AnyHashable: Any] = [:]
+        for param in mirror.params {
+            dictionary[param.key] = param.value
+        }
+
+        var fixedFields: [FixedBeetField] = []
+        for f in fields {
+            switch f.beet {
+            case .fixedBeet(let type):
+                fixedFields.append((f.type, type))
+            case .fixableBeat(let type):
+                fixedFields.append((f.type, type.toFixedFromValue(val: dictionary[f.type]!)))
+            }
         }
 
         if self.description != FixableBeetStruct_TYPE {
