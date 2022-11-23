@@ -255,7 +255,8 @@ public func mirrored(value: Any) -> (label: String, params: [String: Any]) {
         return ("\(value)", dictionary)
     }
 
-    if reflection.displayStyle == .enum, let associated = reflection.children.first {
+    if reflection.displayStyle == .enum || reflection.displayStyle == .optional,
+       let associated = reflection.children.first {
         let values = Mirror(reflecting: associated.value).children
         var valuesArray = [String: Any]()
         if values.count > 0 {
