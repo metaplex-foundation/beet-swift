@@ -1,10 +1,10 @@
 import Foundation
 
-struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
+struct fixedSizeMap: ElementCollectionFixedSizeBeet {
    
     let keyElement: Beet
     let valElement: Beet
-    let fixedElements: [K: (FixedSizeBeet, FixedSizeBeet)]
+    let fixedElements: [AnyHashable: (FixedSizeBeet, FixedSizeBeet)]
     let len: UInt32
     
     var description: String
@@ -24,7 +24,7 @@ struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
     public init(
         keyElement: Beet,
         valElement: Beet,
-        fixedElements: [K : (FixedSizeBeet, FixedSizeBeet)],
+        fixedElements: [AnyHashable : (FixedSizeBeet, FixedSizeBeet)],
          len: UInt32
     ) {
         self.keyElement = keyElement
@@ -82,11 +82,11 @@ struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
 
     
     func write<T>(buf: inout Data, offset: Int, value: T) {
-        let map = value as! [K: V]
+        let map = value as! [AnyHashable: Any]
         
         // Write the values first and then the size as it comes clear while we do the former
         var cursor = offset + 4
-        var size = 0
+        var size: UInt32 = 0
                 
         map.forEach { (k,v) in
             var fixedKey: FixedSizeBeet? = nil
@@ -120,15 +120,15 @@ struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
         }
         
         u32().write(buf: &buf, offset: offset, value: size)
-        if len == size { fatalError("Expected map to have size \(len), but has \(size)") }
+        if len != size { fatalError("Expected map to have size \(len), but has \(size)") }
     }
     
     func read<T>(buf: Data, offset: Int) -> T {
         let size: UInt32 = u32().read(buf: buf, offset: offset)
-        if len == size { fatalError("Expected map to have size \(len), but has \(size)") }
+        if len != size { fatalError("Expected map to have size \(len), but has \(size)") }
         var cursor = offset + 4
         
-        var map: [K: V] = [:]
+        var map: [AnyHashable: Any] = [:]
         
         for _ in 0..<size{
             // When we read the value from a buffer we don't know the key we're
@@ -143,18 +143,18 @@ struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
                 fixedKey = fixable.toFixedFromData(buf: buf, offset: cursor)
             }
             
-            let k: K = fixedKey.read(buf: buf, offset: cursor)
+            let k: AnyHashable = fixedKey.read(buf: buf, offset: cursor)
             cursor += Int(fixedKey.byteSize)
             
             let fixedVal: FixedSizeBeet
-            switch keyElement{
+            switch valElement{
             case .fixedBeet(let fixed):
                 fixedVal = fixed
             case .fixableBeat(let fixable):
                 fixedVal = fixable.toFixedFromData(buf: buf, offset: cursor)
             }
             
-            let v: V = fixedVal.read(buf: buf, offset: cursor)
+            let v: Any = fixedVal.read(buf: buf, offset: cursor)
             cursor += Int(fixedVal.byteSize)
             
             map[k] = v
@@ -164,7 +164,7 @@ struct fixedSizeMap<K: Hashable, V>: ElementCollectionFixedSizeBeet {
     }
 }
 
-struct map<K: Hashable, V>: FixableBeet {
+struct map: FixableBeet {
     let keyElement: Beet
     let valElement: Beet
     
@@ -183,13 +183,13 @@ struct map<K: Hashable, V>: FixableBeet {
         if (keyIsFixed && valIsFixed) {
             return FixedSizeBeet(
                 value: FixedSizeBeetType.collection(
-                    fixedSizeMap<K, V>(keyElement: keyElement, valElement: valElement, fixedElements: [:], len: len)
+                    fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: [:], len: len)
                 )
             )
         }
         // If either key or val are not fixed size beets we need to determine the
         // fixed versions and add them to a map by key
-        var fixedBeets: [K: (FixedSizeBeet, FixedSizeBeet)] = [:]
+        var fixedBeets: [AnyHashable: (FixedSizeBeet, FixedSizeBeet)] = [:]
         for _ in 0..<len {
             let keyFixed: FixedSizeBeet
             switch keyElement {
@@ -198,7 +198,7 @@ struct map<K: Hashable, V>: FixableBeet {
             case .fixableBeat(let fixable):
                 keyFixed = fixable.toFixedFromData(buf: buf, offset: cursor)
             }
-            let key = keyFixed.read(buf: buf, offset: cursor) as K
+            let key: AnyHashable = keyFixed.read(buf: buf, offset: cursor)
             cursor += Int(keyFixed.byteSize)
             
             let valFixed: FixedSizeBeet
@@ -214,31 +214,31 @@ struct map<K: Hashable, V>: FixableBeet {
         }
         return FixedSizeBeet(
             value: FixedSizeBeetType.collection(
-                fixedSizeMap<K, V>(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: len)
+                fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: len)
             )
         )
     }
     
     func toFixedFromValue(val: Any) -> FixedSizeBeet {
-        let mapVal = val as! [K: V]
+        let mapVal = val as! [AnyHashable: Any]
         let len = mapVal.count
         if (keyIsFixed && valIsFixed) {
             return FixedSizeBeet(
                 value: FixedSizeBeetType.collection(
-                    fixedSizeMap<K, V>(
+                    fixedSizeMap(
                         keyElement: keyElement, valElement: valElement, fixedElements: [:], len: UInt32(len)
                     )
                 )
             )
         }
-        var fixedBeets: [K: (FixedSizeBeet, FixedSizeBeet)] = [:]
+        var fixedBeets: [AnyHashable: (FixedSizeBeet, FixedSizeBeet)] = [:]
         mapVal.forEach { (k, v) in
             let keyFixed: FixedSizeBeet
             switch keyElement {
             case .fixedBeet(let fixed):
                 keyFixed = fixed
             case .fixableBeat(let fixable):
-                keyFixed = fixable.toFixedFromValue(val: v)
+                keyFixed = fixable.toFixedFromValue(val: k)
             }
             
             let valFixed: FixedSizeBeet
@@ -253,7 +253,7 @@ struct map<K: Hashable, V>: FixableBeet {
         }
         return FixedSizeBeet(
             value: FixedSizeBeetType.collection(
-                fixedSizeMap<K,V>(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: UInt32(len))
+                fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: UInt32(len))
             )
         )
     }

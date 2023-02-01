@@ -7,6 +7,7 @@ enum ValueType {
     case number(Int)
     case arrayString([String])
     case arrayInt([Int])
+    case arrayValueType([Any])
     case dict([String: Any])
     case none
 }
@@ -43,6 +44,11 @@ extension Fixture: Decodable {
         do {
             let valueDict: [String: Any] = try container.decode([String: Any].self, forKey: .value)
             value = .dict(valueDict)
+        } catch {}
+        
+        do {
+            let valueDict: [Any] = try container.decode([Any].self, forKey: .value)
+            value = .arrayValueType(valueDict)
         } catch {}
         let data: [UInt8] = try container.decode([UInt8].self, forKey: .data)
         self.init(value: value, data: data)

@@ -29,7 +29,6 @@ enum Simples: ConstructableWithDiscriminator & Equatable{
         case "Second": return .Second(second_field: UInt32(dict["second_field"] as! Int ))
         default: fatalError()
         }
-      
     }
 }
 
