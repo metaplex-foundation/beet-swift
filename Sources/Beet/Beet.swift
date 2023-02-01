@@ -45,5 +45,6 @@ public var BeetSupportedTypeMap: Dictionary<String, SupportedTypeDefinition> {
     enumsTypeMap.forEach { supported[$0.0.rawValue] = $0.1 }
     numbersTypeMap.forEach { supported[$0.0.rawValue] = $0.1 }
     aliasesTypeMap.forEach { supported[$0.0.rawValue] = $0.1 }
+    mapsTypeMap.forEach { supported[$0.0.rawValue] = $0.1 }
     return supported
 }

@@ -168,8 +168,18 @@ public protocol FixableBeet: BeetBase {
  * @category beet
  */
 public enum Beet {
+    
     case fixedBeet(FixedSizeBeet)
     case fixableBeat(FixableBeet)
+    
+    var description: String {
+        switch(self){
+        case .fixedBeet(let beet):
+            return beet.description
+        case .fixableBeat(let beet):
+            return beet.description
+        }
+    }
 }
 
 /**
