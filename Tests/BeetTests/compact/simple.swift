@@ -30,6 +30,10 @@ extension Fixture: Decodable {
             value = .string(valueString)
         } catch {}
         do {
+            let valueDict: [Any] = try container.decode([Any].self, forKey: .value)
+            value = .arrayValueType(valueDict)
+        } catch {}
+        do {
             let valueInt: Int = try container.decode(Int.self, forKey: .value)
             value = .number(valueInt)
         } catch {}
@@ -46,10 +50,7 @@ extension Fixture: Decodable {
             value = .dict(valueDict)
         } catch {}
         
-        do {
-            let valueDict: [Any] = try container.decode([Any].self, forKey: .value)
-            value = .arrayValueType(valueDict)
-        } catch {}
+       
         let data: [UInt8] = try container.decode([UInt8].self, forKey: .data)
         self.init(value: value, data: data)
     }
