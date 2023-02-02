@@ -10,6 +10,7 @@ public enum BeetTypeMapKey: Hashable {
     case enumsTypeMapKey(EnumsTypeMapKey)
     case numbersTypeMapKey(NumbersTypeMapKey)
     case aliasesTypeMapKey(AliasesTypeMapKey)
+    case mapTypeMapKey(MapsTypeMapKey)
     
     public var key: String {
         switch self {
@@ -24,6 +25,8 @@ public enum BeetTypeMapKey: Hashable {
         case .numbersTypeMapKey(let key):
             return key.rawValue
         case .aliasesTypeMapKey(let key):
+            return key.rawValue
+        case .mapTypeMapKey(let key):
             return key.rawValue
         }
     }
