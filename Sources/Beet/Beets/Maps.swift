@@ -269,11 +269,11 @@ public class hashmap: FixableBeet {
 }
 
 public enum MapsTypeMapKey: String {
-    case map
+    case hashmap
 }
 
 public typealias MapsTypeMap = (MapsTypeMapKey, SupportedTypeDefinition)
 
 public let mapsTypeMap: [MapsTypeMap] = [
-    (MapsTypeMapKey.map, SupportedTypeDefinition(beet: "map(keyElement: {{innerK}}, valElement: {{innerV}})", isFixable: true, sourcePack: BEET_PACKAGE, swift: "Dictionary"))
+    (MapsTypeMapKey.hashmap, SupportedTypeDefinition(beet: "hashmap(keyElement: {{innerK}}, valElement: {{innerV}})", isFixable: true, sourcePack: BEET_PACKAGE, swift: "Dictionary"))
 ]
