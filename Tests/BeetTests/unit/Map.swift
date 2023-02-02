@@ -4,7 +4,7 @@ import XCTest
 
 final class mapTests: XCTestCase {
     func testCompatMapsTopLevelHMapU8U8() {
-        let beet = map(keyElement: .fixedBeet(.init(value: .scalar(u8()))),
+        let beet = hashmap(keyElement: .fixedBeet(.init(value: .scalar(u8()))),
                        valElement: .fixedBeet(.init(value: .scalar(u8())))
         )
         
@@ -35,7 +35,7 @@ final class mapTests: XCTestCase {
     }
     
     func testCompatMapsTopLevelBTreeMapU8U8(){
-        let beet = map(keyElement: .fixedBeet(.init(value: .scalar(u8()))),
+        let beet = hashmap(keyElement: .fixedBeet(.init(value: .scalar(u8()))),
                        valElement: .fixedBeet(.init(value: .scalar(u8())))
         )
         let fixtures = stubbedResponse("maps")
@@ -61,7 +61,7 @@ final class mapTests: XCTestCase {
         }
     }
     func testCompatMapsTopLevelHashMapStringI32(){
-        let beet = map(keyElement: .fixableBeat(Utf8String()),
+        let beet = hashmap(keyElement: .fixableBeat(Utf8String()),
                        valElement: .fixedBeet(.init(value: .scalar(i32())))
         )
         let fixtures = stubbedResponse("maps")
@@ -87,7 +87,7 @@ final class mapTests: XCTestCase {
     }
     
     func testCompatMapsTopLevelHashMapStringArrayI8(){
-        let beet = map(keyElement: .fixableBeat(Utf8String()),
+        let beet = hashmap(keyElement: .fixableBeat(Utf8String()),
                        valElement: .fixableBeat(array(element: .fixedBeet(.init(value: .scalar(i8())))))
         )
         let fixtures = stubbedResponse("maps")
@@ -116,7 +116,7 @@ final class mapTests: XCTestCase {
         // NOTE: this checks deserialization only as it turned out complex enough
         // already to set up this test
         let beet = array(element: .fixableBeat(
-                            map(keyElement: .fixableBeat(Utf8String()),
+                            hashmap(keyElement: .fixableBeat(Utf8String()),
                                 valElement: .fixedBeet(.init(value: .scalar(i64())))
                             )
                         )

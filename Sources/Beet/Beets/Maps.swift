@@ -1,6 +1,6 @@
 import Foundation
 
-public struct fixedSizeMap: ElementCollectionFixedSizeBeet {
+public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
    
     public let keyElement: Beet
     public let valElement: Beet
@@ -164,9 +164,14 @@ public struct fixedSizeMap: ElementCollectionFixedSizeBeet {
     }
 }
 
-public struct map: FixableBeet {
+public class hashmap: FixableBeet {
     public let keyElement: Beet
     public let valElement: Beet
+    
+    public init(keyElement: Beet, valElement: Beet) {
+        self.keyElement = keyElement
+        self.valElement = valElement
+    }
     
     private var keyIsFixed: Bool {
         return isFixedSizeBeet(x: keyElement)
@@ -183,7 +188,7 @@ public struct map: FixableBeet {
         if (keyIsFixed && valIsFixed) {
             return FixedSizeBeet(
                 value: FixedSizeBeetType.collection(
-                    fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: [:], len: len)
+                    fixedSizeHashMap(keyElement: keyElement, valElement: valElement, fixedElements: [:], len: len)
                 )
             )
         }
@@ -214,7 +219,7 @@ public struct map: FixableBeet {
         }
         return FixedSizeBeet(
             value: FixedSizeBeetType.collection(
-                fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: len)
+                fixedSizeHashMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: len)
             )
         )
     }
@@ -225,7 +230,7 @@ public struct map: FixableBeet {
         if (keyIsFixed && valIsFixed) {
             return FixedSizeBeet(
                 value: FixedSizeBeetType.collection(
-                    fixedSizeMap(
+                    fixedSizeHashMap(
                         keyElement: keyElement, valElement: valElement, fixedElements: [:], len: UInt32(len)
                     )
                 )
@@ -253,7 +258,7 @@ public struct map: FixableBeet {
         }
         return FixedSizeBeet(
             value: FixedSizeBeetType.collection(
-                fixedSizeMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: UInt32(len))
+                fixedSizeHashMap(keyElement: keyElement, valElement: valElement, fixedElements: fixedBeets, len: UInt32(len))
             )
         )
     }
