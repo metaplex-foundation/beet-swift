@@ -13,14 +13,14 @@ func checkCase<E: Equatable>(
     case .fixedBeet(let fixedSizeBeet):
         let beet = fixedSizeBeet
         largerBuf = Data(count: offset + Int(beet.byteSize))
-        beet.write(buf: &largerBuf, offset: offset, value: expected)
-        let actual: E = beet.read(buf: largerBuf, offset: offset)
+        try! beet.write(buf: &largerBuf, offset: offset, value: expected)
+        let actual: E = try! beet.read(buf: largerBuf, offset: offset)
         XCTAssertEqual(actual, expected)
     case .fixableBeat(let fixableBeet):
-        let beet = fixableBeet.toFixedFromValue(val: expected)
+        let beet = try! fixableBeet.toFixedFromValue(val: expected)
         largerBuf = Data(count: offset + Int(beet.byteSize))
-        beet.write(buf: &largerBuf, offset: offset, value: expected)
-        let actual: E = beet.read(buf: largerBuf, offset: offset)
+        try! beet.write(buf: &largerBuf, offset: offset, value: expected)
+        let actual: E = try! beet.read(buf: largerBuf, offset: offset)
         XCTAssertEqual(actual, expected)
     }
     
@@ -29,14 +29,14 @@ func checkCase<E: Equatable>(
     case .fixedBeet(let fixedSizeBeet):
         let beet = fixedSizeBeet
         largerBuf = Data(count: offset + Int(beet.byteSize) + offset)
-        beet.write(buf: &largerBuf, offset: offset, value: expected)
-        let actual: E = beet.read(buf: largerBuf, offset: offset)
+        try! beet.write(buf: &largerBuf, offset: offset, value: expected)
+        let actual: E = try! beet.read(buf: largerBuf, offset: offset)
         XCTAssertEqual(actual, expected)
     case .fixableBeat(let fixableBeet):
-        let beet = fixableBeet.toFixedFromValue(val: expected)
+        let beet = try! fixableBeet.toFixedFromValue(val: expected)
         largerBuf = Data(count: offset + Int(beet.byteSize) + offset)
-        beet.write(buf: &largerBuf, offset: offset, value: expected)
-        let actual: E = beet.read(buf: largerBuf, offset: offset)
+        try! beet.write(buf: &largerBuf, offset: offset, value: expected)
+        let actual: E = try! beet.read(buf: largerBuf, offset: offset)
         XCTAssertEqual(actual, expected)
     }
     

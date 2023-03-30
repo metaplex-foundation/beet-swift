@@ -23,33 +23,33 @@ class BeetWriter {
         return self._offset
     }
 
-    func maybeResize(bytesNeeded: Int) {
+    func maybeResize(bytesNeeded: Int) throws {
         if self._offset + bytesNeeded > self.buf.count {
-            assertionFailure("We shouldn't ever need to resize")
+            throw BeetError.assert("We shouldn't ever need to resize")
         }
         // self.buf = Buffer.concat([this.buf, Buffer.alloc(this.allocateBytes)])
     }
 
-    func write<T>(beet: FixedSizeBeet, value: T?) {
-        self.maybeResize(bytesNeeded: Int(beet.byteSize))
-        beet.write(buf: &self.buf, offset: self._offset, value: value)
+    func write<T>(beet: FixedSizeBeet, value: T?) throws {
+        try self.maybeResize(bytesNeeded: Int(beet.byteSize))
+        try beet.write(buf: &self.buf, offset: self._offset, value: value)
         self._offset += Int(beet.byteSize)
     }
 
-    func writeStruct<T>(instance: T, fields: [FixedBeetField]) {
+    func writeStruct<T>(instance: T, fields: [FixedBeetField]) throws {
         for field in fields {
             let m = Mirror(reflecting: instance)
             if m.displayStyle == Swift.Mirror.DisplayStyle.dictionary {
                 for children in m.children {
                     if let hassed = children.value as? (key: AnyHashable, value: Any), hassed.key == field.type {
-                        self.write(beet: field.beet, value: hassed.value)
+                        try self.write(beet: field.beet, value: hassed.value)
                     }
                 }
             } else {
                 let reflectedField = m.children.first { (label: String?, _: Any) in
                     label! == field.type as! String
                 }
-                self.write(beet: field.beet, value: reflectedField?.value)
+                try self.write(beet: field.beet, value: reflectedField?.value)
             }
         }
     }
@@ -75,23 +75,23 @@ class BeetReader {
         return self._offset
     }
 
-    func read<T>(beet: FixedSizeBeet) -> T {
+    func read<T>(beet: FixedSizeBeet) throws -> T {
         switch beet.value {
         case .scalar(let type):
-            let value: T = type.read(buf: self.buffer, offset: self._offset)
+            let value: T = try type.read(buf: self.buffer, offset: self._offset)
             self._offset += Int(type.byteSize)
             return value
         case .collection(let type):
-            let value: T = type.read(buf: self.buffer, offset: self._offset)
+            let value: T = try type.read(buf: self.buffer, offset: self._offset)
             self._offset += Int(type.byteSize)
             return value
         }
     }
 
-    func readStruct<T>(fields: [FixedBeetField]) -> [AnyHashable: T] {
+    func readStruct<T>(fields: [FixedBeetField]) throws -> [AnyHashable: T] {
         var acc: [AnyHashable: T] = [:]
         for field in fields {
-            acc[field.type] = self.read(beet: field.beet)
+            acc[field.type] = try self.read(beet: field.beet)
         }
         return acc
     }

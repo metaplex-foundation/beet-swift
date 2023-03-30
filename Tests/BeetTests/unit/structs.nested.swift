@@ -52,8 +52,8 @@ final class structsNestedTests: XCTestCase {
         let trader = Trader(name: "bob ", results: Results(win: 20, totalWin: 1200, losses: -455), age: 22)
         let extraBytes = [0, 8]
         for extra in extraBytes {
-            let (buf,_) = Trader.struct.serialize(instance: trader, byteSize: Int(Trader.struct.byteSize) + extra)
-            let (deserialized, offset) = Trader.struct.deserialize(buffer: buf)
+            let (buf,_) = try! Trader.struct.serialize(instance: trader, byteSize: Int(Trader.struct.byteSize) + extra)
+            let (deserialized, offset) = try! Trader.struct.deserialize(buffer: buf)
             XCTAssertEqual(UInt(offset), Trader.struct.byteSize)
             XCTAssertEqual(deserialized, trader)
         }

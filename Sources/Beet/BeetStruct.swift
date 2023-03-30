@@ -36,8 +36,8 @@ public class BeetStruct<Class>: ScalarFixedSizeBeet {
      * thus supports composing/nesting them the same way.
      * @private
      */
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
-        let (innerBuf, innerOffset) = self.serialize(instance: value as! Class)
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
+        let (innerBuf, innerOffset) = try self.serialize(instance: value as! Class)
         var advanced = buf
         let data = innerBuf.bytes[0..<innerOffset]
         advanced.replaceSubrange(offset..<offset+data.count, with: data)
@@ -49,8 +49,8 @@ public class BeetStruct<Class>: ScalarFixedSizeBeet {
      * thus supports composing/nesting them the same way.
      * @private
      */
-    public func read<T>(buf: Data, offset: Int) -> T {
-        let k: (Class, Int) = self.deserialize(buffer: buf, offset: offset)
+    public func read<T>(buf: Data, offset: Int) throws -> T {
+        let k: (Class, Int) = try self.deserialize(buffer: buf, offset: offset)
         return k.0 as! T
     }
 
@@ -60,9 +60,9 @@ public class BeetStruct<Class>: ScalarFixedSizeBeet {
      *
      * @returns `[instance of Class, offset into buffer after deserialization completed]`
      */
-    public func deserialize(buffer: Data, offset: Int = 0) -> (Class, Int) {
+    public func deserialize(buffer: Data, offset: Int = 0) throws -> (Class, Int) {
         let reader = BeetReader(buffer: buffer, offset: offset)
-        let args = reader.readStruct(fields: self.fields) as Args
+        let args = try reader.readStruct(fields: self.fields) as Args
         return (self.construct(args), reader.offset())
     }
 
@@ -73,9 +73,9 @@ public class BeetStruct<Class>: ScalarFixedSizeBeet {
      * @param byteSize allows to override the size fo the created Buffer and
      * defaults to the size of the struct to serialize
      */
-    public func serialize(instance: Class, byteSize: Int?=nil) -> (Data, Int) {
+    public func serialize(instance: Class, byteSize: Int?=nil) throws -> (Data, Int) {
         let writer = BeetWriter(byteSize: byteSize ?? Int(self.byteSize))
-        writer.writeStruct(instance: instance, fields: self.fields)
+        try writer.writeStruct(instance: instance, fields: self.fields)
         return (writer.buffer(), writer.offset())
     }
 

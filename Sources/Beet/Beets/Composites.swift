@@ -80,29 +80,29 @@ class coptionSome: ScalarFixedSizeBeet {
         }
     }
 
-    func write<T>(buf: inout Data, offset: Int, value: T) {
+    func write<T>(buf: inout Data, offset: Int, value: T) throws {
         if case Optional<Any>.none = value as Any {
-            assertionFailure("coptionSome cannot handle `nil` values")
+            throw BeetError.assert("coptionSome cannot handle `nil` values")
         }
         var mutableBytes = buf.bytes
         mutableBytes[offset] = UInt8(SOME)
         buf = Data(mutableBytes)
         switch inner.value {
         case .scalar(let type):
-            type.write(buf: &buf, offset: offset + 1, value: value)
+            try type.write(buf: &buf, offset: offset + 1, value: value)
         case .collection(let type):
-            type.write(buf: &buf, offset: offset + 1, value: value)
+            try type.write(buf: &buf, offset: offset + 1, value: value)
         }
     }
 
-    func read<T>(buf: Data, offset: Int) -> T {
+    func read<T>(buf: Data, offset: Int) throws -> T {
         switch inner.value {
         case .scalar(let type):
             debugPrint("read \(description): \(type)")
-            return type.read(buf: buf, offset: offset + 1)
+            return try type.read(buf: buf, offset: offset + 1)
         case .collection(let type):
             debugPrint("read \(description): \(type)")
-            return type.read(buf: buf, offset: offset + 1)
+            return try type.read(buf: buf, offset: offset + 1)
         }
     }
 }
@@ -137,12 +137,12 @@ public class coption: FixableBeet {
         }
     }
 
-    public func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet {
+    public func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet {
         if isSomeBuffer(buf: buf, offset: offset) {
-            let innerFixed = fixBeetFromData(beet: inner, buf: buf, offset: offset + 1)
+            let innerFixed = try fixBeetFromData(beet: inner, buf: buf, offset: offset + 1)
             return FixedSizeBeet(value: .scalar(coptionSome(inner: innerFixed)))
         } else {
-            assert(isNoneBuffer(buf: buf, offset: offset), "Expected \(buf) to hold a COption")
+            if !(isNoneBuffer(buf: buf, offset: offset)) { throw BeetError.assert("Expected \(buf) to hold a COption") }
             switch inner {
             case .fixedBeet(let beet):
                 switch beet.value {
@@ -157,7 +157,7 @@ public class coption: FixableBeet {
         }
     }
 
-    public func toFixedFromValue(val: Any) -> FixedSizeBeet {
+    public func toFixedFromValue(val: Any) throws -> FixedSizeBeet {
         if case Optional<UInt8>.none = val {
             switch inner {
             case .fixedBeet(let beet):
@@ -171,7 +171,7 @@ public class coption: FixableBeet {
                 return FixedSizeBeet(value: .scalar(coptionNone(description: beet.description)))
             }
         } else {
-            return FixedSizeBeet(value: .scalar(coptionSome(inner: fixBeetFromValue(beet: inner, val: val))))
+            return FixedSizeBeet(value: .scalar(coptionSome(inner: try fixBeetFromValue(beet: inner, val: val))))
         }
     }
 }

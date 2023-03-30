@@ -8,25 +8,25 @@ func verify<X : Equatable, B>(
     expected: BeetStruct<B>
 ) {
     
-    let fixedFromArgs = beet.toFixedFromValue(val: args)
+    let fixedFromArgs = try! beet.toFixedFromValue(val: args)
     var data: Data
     switch fixedFromArgs.value {
     case .scalar(let type):
         data = Data(count: Int(type.byteSize))
-        type.write(buf: &data, offset: 0, value: beet.construct(args))
+        try! type.write(buf: &data, offset: 0, value: beet.construct(args))
     case .collection(let type):
         data = Data(count: Int(type.byteSize))
-        type.write(buf: &data, offset: 0, value: beet.construct(args))
+        try! type.write(buf: &data, offset: 0, value: beet.construct(args))
     }
     
-    let fixedFromData: FixedSizeBeet = beet.toFixedFromData(buf: data, offset: 0)
+    let fixedFromData: FixedSizeBeet = try! beet.toFixedFromData(buf: data, offset: 0)
     
     switch fixedFromData.value {
     case .scalar(let type):
-        let deserializedArgs: X  = type.read(buf: data, offset: 0)
+        let deserializedArgs: X  = try! type.read(buf: data, offset: 0)
         XCTAssertEqual(deserializedArgs, beet.construct(args))
     case .collection(let type):
-        let deserializedArgs: X = type.read(buf: data, offset: 0)
+        let deserializedArgs: X = try! type.read(buf: data, offset: 0)
         XCTAssertEqual(deserializedArgs, beet.construct(args))
     }
 }
@@ -47,7 +47,7 @@ final class structsFixableTests: XCTestCase {
             },
             description: "VecStruct"
         )
-        _ = xStruct.toFixedFromValue(val: ["ids": [], "count" : 1])
+        _ = try! xStruct.toFixedFromValue(val: ["ids": [], "count" : 1])
         
         let expected = BeetArgsStruct(fields: [
             ( "ids", FixedSizeBeet(value: .collection(UniformFixedSizeArray<UInt32>(element: .init(value: .scalar(u32())), len: 4, lenPrefix: true)))),
@@ -74,7 +74,7 @@ final class structsFixableTests: XCTestCase {
             },
             description: "CustomerStruct"
         )
-        _ = yStruct.toFixedFromValue(val: ["name": "XXXX", "age" : 1])
+        _ = try! yStruct.toFixedFromValue(val: ["name": "XXXX", "age" : 1])
         
         let expected = BeetArgsStruct(fields: [
             ( "name", FixedSizeBeet(value: .collection(FixedSizeUtf8String(stringByteLength: UInt(11))))),
@@ -100,7 +100,7 @@ final class structsFixableTests: XCTestCase {
             },
             description: "ContributorsStruct"
         )
-        _ = zStruct.toFixedFromValue(val: ["maybeIds": [UInt32(1), UInt32(2), UInt32(3)], "contributors" : ["bob", "alice"]])
+        _ = try! zStruct.toFixedFromValue(val: ["maybeIds": [UInt32(1), UInt32(2), UInt32(3)], "contributors" : ["bob", "alice"]])
         
         let expected = BeetArgsStruct(fields: [
             ("maybeIds", .init(value: .collection(UniformFixedSizeArray<UInt32>(element: .init(value: .scalar(u32())), len: 3)))),
@@ -175,7 +175,7 @@ final class structsFixableTests: XCTestCase {
         )
                 
         let expected = BeetArgsStruct(fields: [
-            ( "innerArgs", innerStruct.toFixedFromValue(val: ["name": "bob", "age": UInt8(18)]))
+            ( "innerArgs", try! innerStruct.toFixedFromValue(val: ["name": "bob", "age": UInt8(18)]))
         ], description: "Args")
         verify(beet: argStruct, args: ["innerArgs": ["name": "bob", "age": UInt8(18)]], expected: expected)
     }
@@ -233,7 +233,7 @@ final class structsFixableTests: XCTestCase {
  
                 
         let expected = BeetArgsStruct(fields: [
-            ("innerArgs", innerStruct.toFixedFromValue(val: ["housePrices": [], "age": UInt8(20)])),
+            ("innerArgs", try! innerStruct.toFixedFromValue(val: ["housePrices": [], "age": UInt8(20)])),
             ("name", FixedSizeBeet(value: .collection(FixedSizeUtf8String(stringByteLength: 5)))),
             ("symbol", FixedSizeBeet(value: .collection(FixedSizeUtf8String(stringByteLength: 3)))),
             ("count", FixedSizeBeet(value: .scalar(u8())))

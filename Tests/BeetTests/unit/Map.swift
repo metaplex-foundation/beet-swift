@@ -22,11 +22,11 @@ final class mapTests: XCTestCase {
                 }
                 let data = Data(fixture.data)
                 
-                let fixedBeetFromData = beet.toFixedFromData(buf: data, offset: 0)
+                let fixedBeetFromData = try! beet.toFixedFromData(buf: data, offset: 0)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromData, value: m, data: data, description: "")
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromData, keyBeet: .fixedBeet(.init(value: .scalar(u8()))), valBeet: .fixedBeet(.init(value: .scalar(u8()))))
                 
-                let fixedBeetFromValue = beet.toFixedFromValue(val: m)
+                let fixedBeetFromValue = try! beet.toFixedFromValue(val: m)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromValue, value: m, data: data, description: "")
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromValue, keyBeet: .fixedBeet(.init(value: .scalar(u8()))), valBeet: .fixedBeet(.init(value: .scalar(u8()))))
             }
@@ -50,11 +50,11 @@ final class mapTests: XCTestCase {
                 }
                 let data = Data(fixture.data)
                 
-                let fixedBeetFromData = beet.toFixedFromData(buf: data, offset: 0)
+                let fixedBeetFromData = try! beet.toFixedFromData(buf: data, offset: 0)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromData, value: m, data: data, description: "")
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromData, keyBeet: .fixedBeet(.init(value: .scalar(u8()))), valBeet: .fixedBeet(.init(value: .scalar(u8()))))
                 
-                let fixedBeetFromValue = beet.toFixedFromValue(val: m)
+                let fixedBeetFromValue = try! beet.toFixedFromValue(val: m)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromValue, value: m, data: data, description: "")
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromValue, keyBeet: .fixedBeet(.init(value: .scalar(u8()))), valBeet: .fixedBeet(.init(value: .scalar(u8()))))
             }
@@ -75,11 +75,11 @@ final class mapTests: XCTestCase {
                 }
                 let data = Data(fixture.data)
                 
-                let fixedBeetFromData = beet.toFixedFromData(buf: data, offset: 0)
+                let fixedBeetFromData = try! beet.toFixedFromData(buf: data, offset: 0)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromData, value: m, data: data)
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromData, keyBeet: .fixableBeat(Utf8String()), valBeet: .fixedBeet(.init(value: .scalar(i32()))))
                 
-                let fixedBeetFromValue = beet.toFixedFromValue(val: m)
+                let fixedBeetFromValue = try! beet.toFixedFromValue(val: m)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromValue, value: m, data: data)
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromValue, keyBeet: .fixableBeat(Utf8String()), valBeet: .fixedBeet(.init(value: .scalar(i32()))))
             }
@@ -101,11 +101,11 @@ final class mapTests: XCTestCase {
                 }
                 let data = Data(fixture.data)
                 
-                let fixedBeetFromData = beet.toFixedFromData(buf: data, offset: 0)
+                let fixedBeetFromData = try! beet.toFixedFromData(buf: data, offset: 0)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromData, value: m, data: data)
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromData, keyBeet: .fixableBeat(Utf8String()), valBeet: .fixableBeat(array(element: .fixedBeet(.init(value: .scalar(i8()))))))
                 
-                let fixedBeetFromValue = beet.toFixedFromValue(val: m)
+                let fixedBeetFromValue = try! beet.toFixedFromValue(val: m)
                 checkFixedDeserialize(fixedBeet: fixedBeetFromValue, value: m, data: data)
                 checkMapSerialize(m: m, mapBeet: fixedBeetFromValue, keyBeet: .fixableBeat(Utf8String()), valBeet: .fixableBeat(array(element: .fixedBeet(.init(value: .scalar(i8()))))))
             }
@@ -140,15 +140,15 @@ final class mapTests: XCTestCase {
                 
                 let data = Data(fixture.data)
                 
-                let fixedBeetFromData = beet.toFixedFromData(buf: data, offset: 0)
+                let fixedBeetFromData = try! beet.toFixedFromData(buf: data, offset: 0)
                 // Serialization
-                let actual: [[String: Int64]] = fixedBeetFromData.read(buf: data, offset: 0)
+                let actual: [[String: Int64]] = try! fixedBeetFromData.read(buf: data, offset: 0)
                 
                 XCTAssert(m == actual)
                 
                 // Deserialization
                 var serialized = Data(count: Int(fixedBeetFromData.byteSize))
-                fixedBeetFromData.write(buf: &serialized, offset: 0, value: actual)
+                try! fixedBeetFromData.write(buf: &serialized, offset: 0, value: actual)
 
             }
         }

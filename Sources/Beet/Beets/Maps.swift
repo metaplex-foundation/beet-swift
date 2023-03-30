@@ -81,14 +81,14 @@ public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
     
 
     
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
         let map = value as! [AnyHashable: Any]
         
         // Write the values first and then the size as it comes clear while we do the former
         var cursor = offset + 4
         var size: UInt32 = 0
                 
-        map.forEach { (k,v) in
+        try map.forEach { (k,v) in
             var fixedKey: FixedSizeBeet? = nil
             if case let .fixedBeet(fixedKeyElement) = keyElement {
                 fixedKey = fixedKeyElement
@@ -111,10 +111,10 @@ public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
                 
             }
             
-            fixedKey!.write(buf: &buf, offset: cursor, value: k)
+            try fixedKey!.write(buf: &buf, offset: cursor, value: k)
             cursor += Int(fixedKey!.byteSize)
 
-            fixedVal!.write(buf: &buf, offset: cursor, value: v)
+            try fixedVal!.write(buf: &buf, offset: cursor, value: v)
             cursor += Int(fixedVal!.byteSize)
             size += 1
         }
@@ -123,7 +123,7 @@ public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
         if len != size { fatalError("Expected map to have size \(len), but has \(size)") }
     }
     
-    public func read<T>(buf: Data, offset: Int) -> T {
+    public func read<T>(buf: Data, offset: Int) throws -> T {
         let size: UInt32 = u32().read(buf: buf, offset: offset)
         if len != size { fatalError("Expected map to have size \(len), but has \(size)") }
         var cursor = offset + 4
@@ -140,10 +140,10 @@ public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
             case .fixedBeet(let fixed):
                 fixedKey = fixed
             case .fixableBeat(let fixable):
-                fixedKey = fixable.toFixedFromData(buf: buf, offset: cursor)
+                fixedKey = try fixable.toFixedFromData(buf: buf, offset: cursor)
             }
             
-            let k: AnyHashable = fixedKey.read(buf: buf, offset: cursor)
+            let k: AnyHashable = try fixedKey.read(buf: buf, offset: cursor)
             cursor += Int(fixedKey.byteSize)
             
             let fixedVal: FixedSizeBeet
@@ -151,10 +151,10 @@ public class fixedSizeHashMap: ElementCollectionFixedSizeBeet {
             case .fixedBeet(let fixed):
                 fixedVal = fixed
             case .fixableBeat(let fixable):
-                fixedVal = fixable.toFixedFromData(buf: buf, offset: cursor)
+                fixedVal = try fixable.toFixedFromData(buf: buf, offset: cursor)
             }
             
-            let v: Any = fixedVal.read(buf: buf, offset: cursor)
+            let v: Any = try fixedVal.read(buf: buf, offset: cursor)
             cursor += Int(fixedVal.byteSize)
             
             map[k] = v
@@ -181,7 +181,7 @@ public class hashmap: FixableBeet {
         return isFixedSizeBeet(x: valElement)
     }
     
-    public func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet {
+    public func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet {
         let len: UInt32 = u32().read(buf: buf, offset: offset)
         var cursor = offset + 4
         // Shortcut for the case that both key and value are fixed size beets
@@ -201,9 +201,9 @@ public class hashmap: FixableBeet {
             case .fixedBeet(let fixed):
                 keyFixed = fixed
             case .fixableBeat(let fixable):
-                keyFixed = fixable.toFixedFromData(buf: buf, offset: cursor)
+                keyFixed = try fixable.toFixedFromData(buf: buf, offset: cursor)
             }
-            let key: AnyHashable = keyFixed.read(buf: buf, offset: cursor)
+            let key: AnyHashable = try keyFixed.read(buf: buf, offset: cursor)
             cursor += Int(keyFixed.byteSize)
             
             let valFixed: FixedSizeBeet
@@ -211,7 +211,7 @@ public class hashmap: FixableBeet {
             case .fixedBeet(let fixed):
                 valFixed = fixed
             case .fixableBeat(let fixable):
-                valFixed = fixable.toFixedFromData(buf: buf, offset: cursor)
+                valFixed = try fixable.toFixedFromData(buf: buf, offset: cursor)
             }
             
             fixedBeets[key] = (keyFixed, valFixed)
@@ -224,7 +224,7 @@ public class hashmap: FixableBeet {
         )
     }
     
-    public func toFixedFromValue(val: Any) -> FixedSizeBeet {
+    public func toFixedFromValue(val: Any) throws -> FixedSizeBeet {
         let mapVal = val as! [AnyHashable: Any]
         let len = mapVal.count
         if (keyIsFixed && valIsFixed) {
@@ -237,13 +237,13 @@ public class hashmap: FixableBeet {
             )
         }
         var fixedBeets: [AnyHashable: (FixedSizeBeet, FixedSizeBeet)] = [:]
-        mapVal.forEach { (k, v) in
+        try mapVal.forEach { (k, v) in
             let keyFixed: FixedSizeBeet
             switch keyElement {
             case .fixedBeet(let fixed):
                 keyFixed = fixed
             case .fixableBeat(let fixable):
-                keyFixed = fixable.toFixedFromValue(val: k)
+                keyFixed = try fixable.toFixedFromValue(val: k)
             }
             
             let valFixed: FixedSizeBeet
@@ -251,7 +251,7 @@ public class hashmap: FixableBeet {
             case .fixedBeet(let fixed):
                 valFixed = fixed
             case .fixableBeat(let fixable):
-                valFixed = fixable.toFixedFromValue(val: v)
+                valFixed = try fixable.toFixedFromValue(val: v)
             }
             
             fixedBeets[k] = (keyFixed, valFixed)

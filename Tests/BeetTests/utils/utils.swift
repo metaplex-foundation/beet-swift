@@ -9,7 +9,7 @@ func checkFixedSerialize<T>(
   description: String
 ) {
     var buf = Data(count: Int(fixedBeet.byteSize))
-    fixedBeet.write(buf: &buf, offset: 0, value: value)
+    try! fixedBeet.write(buf: &buf, offset: 0, value: value)
     XCTAssertEqual(data, buf)
 }
 
@@ -19,7 +19,7 @@ func checkFixedDeserialize<T: Equatable>(
   data: Data,
   description: String? = nil
 ) {
-    let actual: T = fixedBeet.read(buf: data, offset: 0)
+    let actual: T = try! fixedBeet.read(buf: data, offset: 0)
     XCTAssertEqual(actual, value)
 }
 
@@ -39,7 +39,7 @@ func checkFixableFromDataSerialization<T: Equatable>(
   data: Data,
   description: String
 ) {
-    let fixedBeet = fixabledBeet.toFixedFromData(buf: data, offset: 0)
+    let fixedBeet = try! fixabledBeet.toFixedFromData(buf: data, offset: 0)
     checkFixedSerialize(fixedBeet: fixedBeet, value: value, data: data, description: description)
     checkFixedDeserialize(fixedBeet: fixedBeet, value: value, data: data, description: description)
 }
@@ -50,7 +50,7 @@ func checkFixableFromValueSerialization<T: Equatable>(
   data: Data,
   description: String
 ) {
-    let fixedBeet = fixabledBeet.toFixedFromValue(val: value)
+    let fixedBeet = try! fixabledBeet.toFixedFromValue(val: value)
     checkFixedSerialize(fixedBeet: fixedBeet, value: value, data: data, description: description)
     checkFixedDeserialize(fixedBeet: fixedBeet, value: value, data: data, description: description)
 }
@@ -65,7 +65,7 @@ func checkMapSerialize<K: Hashable, V>(
     valBeet: Beet
 ){
     var serializedMap = Data(count: Int(mapBeet.byteSize))
-    mapBeet.write(buf: &serializedMap, offset: 0, value: m)
+    try! mapBeet.write(buf: &serializedMap, offset: 0, value: m)
     serializedMapIncludesKeyVals(serializedMap: serializedMap, m: m, keyBeet: keyBeet, valBeet: valBeet)
 }
 
@@ -90,8 +90,8 @@ func serializedMapIncludesKeyVals<K: Hashable, V>(
         var keyBuf = Data(count: Int(fixedKey.byteSize))
         var valBuf = Data(count: Int(fixedVal.byteSize))
         
-        fixedKey.write(buf: &keyBuf, offset: 0, value: k)
-        fixedVal.write(buf: &valBuf, offset: 0, value: v)
+        try! fixedKey.write(buf: &keyBuf, offset: 0, value: k)
+        try! fixedVal.write(buf: &valBuf, offset: 0, value: v)
         
         XCTAssert(bufferIncludes(buf: serializedMap, snippet: keyBuf + valBuf), "serialized map includes \(k) \(v)")
     }
@@ -103,7 +103,7 @@ func fixFromValIfNeeded<V>(beet: Beet, v: V) -> FixedSizeBeet {
     case .fixedBeet(let fixed):
         return fixed
     case .fixableBeat(let fixable):
-        return fixable.toFixedFromValue(val: v)
+        return try! fixable.toFixedFromValue(val: v)
     }
 }
 

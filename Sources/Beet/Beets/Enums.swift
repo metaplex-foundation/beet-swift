@@ -78,26 +78,26 @@ public class UniformDataEnum<K: CaseIterable & Equatable & RawRepresentable, D: 
         }
     }
 
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
         let x = value as! UniformDataEnumData<K, D>
         u8().write(buf: &buf, offset: offset, value: x.kind.rawValue)
         switch inner.value {
         case .scalar(let type):
-            type.write(buf: &buf, offset: offset + 1, value: x.data)
+            try type.write(buf: &buf, offset: offset + 1, value: x.data)
         case .collection(let type):
-            type.write(buf: &buf, offset: offset + 1, value: x.data)
+            try type.write(buf: &buf, offset: offset + 1, value: x.data)
         }
     }
 
-    public func read<T>(buf: Data, offset: Int) -> T {
+    public func read<T>(buf: Data, offset: Int) throws -> T {
         let kindRawValue: UInt8 = u8().read(buf: buf, offset: offset)
         let kind = K.init(rawValue: kindRawValue as! K.RawValue)!
         switch inner.value {
         case .scalar(let type):
-            let data = type.read(buf: buf, offset: offset + 1) as D
+            let data = try type.read(buf: buf, offset: offset + 1) as D
             return UniformDataEnumData<K, D>(kind: kind, data: data) as! T
         case .collection(let type):
-            let data = type.read(buf: buf, offset: offset + 1) as D
+            let data = try type.read(buf: buf, offset: offset + 1) as D
             return UniformDataEnumData<K, D>(kind: kind, data: data) as! T
         }
     }
@@ -141,7 +141,7 @@ public class EnumDataVariantBeet<E: ConstructableWithDiscriminator>: ScalarFixed
         }
     }
 
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
         u8().write(buf: &buf, offset: offset, value: discriminant)
         let val = value as! E
         let mirror = val.mirror()
@@ -155,20 +155,20 @@ public class EnumDataVariantBeet<E: ConstructableWithDiscriminator>: ScalarFixed
         switch inner.value {
         case .scalar(let scalar):
             if scalar is BeetArgsStruct {
-                inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: dictionary)
+                try inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: dictionary)
             } else {
-                inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: mirror.params.values.first)
+                try inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: mirror.params.values.first)
             }
         case .collection:
-            inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: mirror.params.values.first)
+            try inner.write(buf: &buf, offset: offset + Int(u8().byteSize), value: mirror.params.values.first)
         }
 
     }
 
-    public func read<T>(buf: Data, offset: Int) -> T {
+    public func read<T>(buf: Data, offset: Int) throws -> T {
         let discriminator: UInt8 = u8().read(buf: buf, offset: offset)
 
-        let param: Any = inner.read(buf: buf, offset: offset + Int(u8().byteSize))
+        let param: Any = try inner.read(buf: buf, offset: offset + Int(u8().byteSize))
         if param is [String: Any] {
             return E.init(discriminator: discriminator, params: param as! [String: Any]) as! T
         } else {
@@ -176,9 +176,9 @@ public class EnumDataVariantBeet<E: ConstructableWithDiscriminator>: ScalarFixed
             for paramkeyType in E.paramsOrderedKeys(discriminator: discriminator) {
                 switch paramkeyType {
                 case .key(let key):
-                    dictionary[key] = inner.read(buf: buf, offset: offset + Int(u8().byteSize)) as Any
+                    dictionary[key] = try inner.read(buf: buf, offset: offset + Int(u8().byteSize)) as Any
                 case .noKey:
-                    dictionary[UUID().uuidString] = inner.read(buf: buf, offset: offset + Int(u8().byteSize)) as Any
+                    dictionary[UUID().uuidString] = try inner.read(buf: buf, offset: offset + Int(u8().byteSize)) as Any
                 }
 
             }
@@ -197,7 +197,7 @@ public class DataEnum<E: ConstructableWithDiscriminator>: FixableBeet {
         self.variants = variants
     }
 
-    public func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet {
+    public func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet {
         let discriminant: UInt8 = u8().read(buf: buf, offset: offset)
         let variant = variants[Int(discriminant)]
         let (_, dataBeet) = variant
@@ -205,11 +205,11 @@ public class DataEnum<E: ConstructableWithDiscriminator>: FixableBeet {
         case .fixedBeet(let type):
             return FixedSizeBeet(value: .scalar(EnumDataVariantBeet<E>(inner: type, discriminant: discriminant)))
         case .fixableBeat(let type):
-            return FixedSizeBeet(value: .scalar(EnumDataVariantBeet<E>(inner: type.toFixedFromData(buf: buf, offset: (offset + 1)), discriminant: discriminant)))
+            return FixedSizeBeet(value: .scalar(EnumDataVariantBeet<E>(inner: try type.toFixedFromData(buf: buf, offset: (offset + 1)), discriminant: discriminant)))
         }
     }
 
-    public func toFixedFromValue(val: Any) -> FixedSizeBeet {
+    public func toFixedFromValue(val: Any) throws -> FixedSizeBeet {
         let value = val as! E
         let mirror = mirrored(value: value)
         let variant = self.variants.first { $0.label == mirror.label}!
@@ -222,10 +222,10 @@ public class DataEnum<E: ConstructableWithDiscriminator>: FixableBeet {
         case .fixableBeat(let fixableBeat):
             for param in mirror.params {
                 if fixableBeat is FixableBeetStruct<Args> {
-                    fixedBeats.append(fixableBeat.toFixedFromValue(val: val))
+                    try fixedBeats.append(fixableBeat.toFixedFromValue(val: val))
                     break
                 } else {
-                    fixedBeats.append(fixableBeat.toFixedFromValue(val: param.value))
+                    try fixedBeats.append(fixableBeat.toFixedFromValue(val: param.value))
                 }
             }
         }

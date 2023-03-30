@@ -21,7 +21,7 @@ public protocol BeetReadWrite {
    * @param offset at which to start writing into the buffer
    * @param value to write
    */
-    func write<T>(buf: inout Data, offset: Int, value: T)
+    func write<T>(buf: inout Data, offset: Int, value: T) throws
   /**
    * Reads the data in the provided buffer and deserializes it into a value of
    * type {@link T}.
@@ -30,7 +30,7 @@ public protocol BeetReadWrite {
    * @param offset at which to start reading from the buffer
    * @returns deserialized instance of type {@link T}.
    */
-    func read<T>(buf: Data, offset: Int) -> T
+    func read<T>(buf: Data, offset: Int) throws -> T
 
   /**
    * Number of bytes that are used to store the value in a {@link Buffer}
@@ -110,21 +110,21 @@ public class FixedSizeBeet {
         }
     }
 
-    public func read<T>(buf: Data, offset: Int) -> T {
+    public func read<T>(buf: Data, offset: Int) throws -> T {
         switch value {
         case .scalar(let scalarFixedSizeBeet):
-            return scalarFixedSizeBeet.read(buf: buf, offset: offset)
+            return try scalarFixedSizeBeet.read(buf: buf, offset: offset)
         case .collection(let elementCollectionFixedSizeBeet):
-            return elementCollectionFixedSizeBeet.read(buf: buf, offset: offset)
+            return try elementCollectionFixedSizeBeet.read(buf: buf, offset: offset)
         }
     }
 
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
         switch self.value {
         case .scalar(let scalarFixedSizeBeet):
-            scalarFixedSizeBeet.write(buf: &buf, offset: offset, value: value)
+            try scalarFixedSizeBeet.write(buf: &buf, offset: offset, value: value)
         case .collection(let elementCollectionFixedSizeBeet):
-            elementCollectionFixedSizeBeet.write(buf: &buf, offset: offset, value: value)
+            try elementCollectionFixedSizeBeet.write(buf: &buf, offset: offset, value: value)
         }
     }
 }
@@ -153,7 +153,7 @@ public protocol FixableBeet: BeetBase {
    * @param offset the offset at which the data starts
    *
    */
-    func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet
+    func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet
 
   /**
    * Provides a fixed size version of `this` by walking the provided value in
@@ -161,7 +161,7 @@ public protocol FixableBeet: BeetBase {
    *
    * @param val the instance for which to adapt this beet to fixed size
    */
-    func toFixedFromValue(val: Any) -> FixedSizeBeet
+    func toFixedFromValue(val: Any) throws -> FixedSizeBeet
 }
 
 /**
@@ -303,12 +303,12 @@ func isFixedSizeBeet(x: Beet) -> Bool {
 /**
  * @private
  */
-func assertFixedSizeBeet(x: Beet, description: String?) {
+func assertFixedSizeBeet(x: Beet, description: String?) throws {
     if let description = description {
-        assert(isFixedSizeBeet(x: x), description)
+        if !(isFixedSizeBeet(x: x)) { throw BeetError.assert(description) }
 
     }
-    assert(isFixedSizeBeet(x: x), "\(x) should have been a fixed beet")
+    if !(isFixedSizeBeet(x: x)) { throw BeetError.assert("\(x) should have been a fixed beet") }
 }
 
 /**
@@ -324,3 +324,7 @@ func isFixableBeet(x: Beet) -> Bool {
 }
 
 public typealias DataEnumBeet<RawRepresentable> = (label: String, beet: Beet)
+
+enum BeetError: Error {
+    case assert(String)
+}

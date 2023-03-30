@@ -36,18 +36,18 @@ final class structsCompositesTests: XCTestCase {
         let fixableBeet: FixableBeet = coption(inner: .fixedBeet(FixedSizeBeet(value: .scalar(Results.struct))))
         let offsets = [0, 8]
         let arg = result1()
-        let beet = fixableBeet.toFixedFromValue(val: arg)
+        let beet = try! fixableBeet.toFixedFromValue(val: arg)
         for offset in offsets {
             switch beet.value {
             case .scalar(let type):
                 var buf = Data(count: offset + Int(type.byteSize) + offset)
-                type.write(buf: &buf, offset: offset, value: arg)
-                let deserialized: Results = type.read(buf: buf, offset: offset)
+                try! type.write(buf: &buf, offset: offset, value: arg)
+                let deserialized: Results = try! type.read(buf: buf, offset: offset)
                 XCTAssertEqual(deserialized, arg)
             case .collection(let type):
                 var buf = Data(count: offset + Int(type.byteSize) + offset)
-                type.write(buf: &buf, offset: offset, value: arg)
-                let deserialized: Results = type.read(buf: buf, offset: offset)
+                try! type.write(buf: &buf, offset: offset, value: arg)
+                let deserialized: Results = try! type.read(buf: buf, offset: offset)
                 XCTAssertEqual(deserialized, arg)
             }
             
@@ -60,8 +60,8 @@ final class structsCompositesTests: XCTestCase {
         
         for offset in offsets {
             var buf = Data(count: offset + Int(beet.byteSize) + offset)
-            beet.write(buf: &buf, offset: offset, value: [result1(), result2(), result3()])
-            let deserialized: [Results] = beet.read(buf: buf, offset: offset)
+            try! beet.write(buf: &buf, offset: offset, value: [result1(), result2(), result3()])
+            let deserialized: [Results] = try! beet.read(buf: buf, offset: offset)
             XCTAssertEqual(deserialized, [result1(), result2(), result3()])
         }
     }
@@ -78,8 +78,8 @@ final class structsCompositesTests: XCTestCase {
             switch beet.value {
             case .scalar(let type):
                 var buf = Data(count: offset + Int(type.byteSize) + offset)
-                type.write(buf: &buf, offset: offset, value: goodResult)
-                let deserialized: UniformDataEnumData<ResultKind, Results>  = type.read(buf: buf, offset: offset)
+                try! type.write(buf: &buf, offset: offset, value: goodResult)
+                let deserialized: UniformDataEnumData<ResultKind, Results>  = try! type.read(buf: buf, offset: offset)
                 XCTAssertEqual(deserialized, goodResult)
             case .collection:
                 XCTFail()
@@ -90,8 +90,8 @@ final class structsCompositesTests: XCTestCase {
             switch beet.value {
             case .scalar(let type):
                 var buf = Data(count: offset + Int(type.byteSize) + offset)
-                type.write(buf: &buf, offset: offset, value: badResult)
-                let deserialized: UniformDataEnumData<ResultKind, Results> = type.read(buf: buf, offset: offset)
+                try! type.write(buf: &buf, offset: offset, value: badResult)
+                let deserialized: UniformDataEnumData<ResultKind, Results> = try! type.read(buf: buf, offset: offset)
                 XCTAssertEqual(deserialized, badResult)
             case .collection:
                 XCTFail()

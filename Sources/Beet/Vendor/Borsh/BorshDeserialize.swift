@@ -13,7 +13,7 @@ public extension FixedWidthInteger {
     var value: Self = .zero
     let bytes = reader.read(count: UInt32(MemoryLayout<Self>.size))
     let size = withUnsafeMutableBytes(of: &value, { bytes.copyBytes(to: $0) })
-    assert(size == MemoryLayout<Self>.size)
+    if !(size == MemoryLayout<Self>.size) { throw BeetError.assert("Memory size dont match") }
     self = Self(littleEndian: value)
   }
 }
@@ -34,8 +34,8 @@ extension Float32: BorshDeserializable {
     var value: Self = .zero
     let bytes = reader.read(count: UInt32(MemoryLayout<Self>.size))
     let size = withUnsafeMutableBytes(of: &value, { bytes.copyBytes(to: $0) })
-    assert(size == MemoryLayout<Self>.size)
-    assert(!value.isNaN, "For portability reasons we do not allow to deserialize NaNs.")
+    if !(size == MemoryLayout<Self>.size) { throw BeetError.assert("Memory size dont match") }
+    if !(!value.isNaN) { throw BeetError.assert("For portability reasons we do not allow to deserialize NaNs.") }
     self = value
   }
 }
@@ -45,8 +45,8 @@ extension Float64: BorshDeserializable {
     var value: Self = .zero
     let bytes = reader.read(count: UInt32(MemoryLayout<Self>.size))
     let size = withUnsafeMutableBytes(of: &value, { bytes.copyBytes(to: $0) })
-    assert(size == MemoryLayout<Self>.size)
-    assert(!value.isNaN, "For portability reasons we do not allow to deserialize NaNs.")
+    if !(size == MemoryLayout<Self>.size) { throw BeetError.assert("Memory size dont match") }
+    if !(!value.isNaN) { throw BeetError.assert("For portability reasons we do not allow to deserialize NaNs.") }
     self = value
   }
 }
@@ -56,7 +56,7 @@ extension Bool: BorshDeserializable {
     var value: Self = false
     let bytes = reader.read(count: UInt32(MemoryLayout<Self>.size))
     let size = withUnsafeMutableBytes(of: &value, { bytes.copyBytes(to: $0) })
-    assert(size == MemoryLayout<Self>.size)
+    if !(size == MemoryLayout<Self>.size) { throw BeetError.assert("Memory size dont match") }
     self = value
   }
 }
