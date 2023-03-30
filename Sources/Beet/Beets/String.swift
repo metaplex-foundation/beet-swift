@@ -22,19 +22,19 @@ public class FixedSizeUtf8String: ElementCollectionFixedSizeBeet {
         self.description = "Utf8String(4 + \(stringByteLength)}"
     }
 
-    public func write<T>(buf: inout Data, offset: Int, value: T) {
+    public func write<T>(buf: inout Data, offset: Int, value: T) throws {
         var advanced = buf
         let string = value as! String
         let data = Data(string.utf8)
-        assert(data.count == stringByteLength, "\(string) has invalid byte size")
+        if !(data.count == stringByteLength) { throw BeetError.assert("\(string) has invalid byte size") }
         u32().write(buf: &advanced, offset: offset, value: UInt32(data.count))
         advanced.replaceSubrange((offset+4)..<(offset+4+data.count), with: data)
         buf = advanced
     }
 
-    public func read<T>(buf: Data, offset: Int) -> T {
+    public func read<T>(buf: Data, offset: Int) throws -> T {
         let size: UInt32 = u32().read(buf: buf, offset: offset)
-        assert(size == stringByteLength, "invalid byte size")
+        if !(size == stringByteLength) { throw BeetError.assert("invalid byte size") }
         let stringSlice = buf.bytes[(offset+4)..<(offset+4+Int(stringByteLength))]
         return String(data: Data(stringSlice), encoding: .utf8) as! T
     }

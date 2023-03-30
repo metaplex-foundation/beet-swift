@@ -21,11 +21,11 @@ public class FixableBeetStruct<Class>: FixableBeet {
      *
      * @returns `[instance of Class, offset into buffer after deserialization completed]`
      */
-    public func deserialize(buffer: Data, offset: Int = 0) -> (Class, Int) {
-        switch self.toFixedFromData(buf: buffer, offset: offset).value {
+    public func deserialize(buffer: Data, offset: Int = 0) throws -> (Class, Int) {
+        switch try self.toFixedFromData(buf: buffer, offset: offset).value {
         case .scalar(let value):
             let beetStruct = value as! BeetStruct<Class>
-            return beetStruct.deserialize(buffer: buffer, offset: offset)
+            return try beetStruct.deserialize(buffer: buffer, offset: offset)
         case .collection:
             fatalError("Should not be a collection.")
         }
@@ -44,23 +44,23 @@ public class FixableBeetStruct<Class>: FixableBeet {
      * @param byteSize allows to override the size fo the created Buffer and
      * defaults to the size of the struct to serialize
      */
-    public func serialize(instance: Args, byteSize: Int?=nil) -> (Data, Int) {
-        switch self.toFixedFromValue(val: instance).value {
+    public func serialize(instance: Args, byteSize: Int?=nil) throws -> (Data, Int) {
+        switch try self.toFixedFromValue(val: instance).value {
         case .scalar(let value):
             let beetStruct = value as! BeetStruct<Class>
-            return beetStruct.serialize(instance: beetStruct.construct(instance), byteSize: byteSize)
+            return try beetStruct.serialize(instance: beetStruct.construct(instance), byteSize: byteSize)
         case .collection:
             fatalError("Should not be a collection.")
         }
     }
 
-    public func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet {
+    public func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet {
         var cursor = offset
         var fixedFields: [FixedBeetField] = []
 
         for i in 0..<self.fields.count {
             let (key, beet) = self.fields[i]
-            let fixedBeet = fixBeetFromData(beet: beet, buf: buf, offset: cursor)
+            let fixedBeet = try fixBeetFromData(beet: beet, buf: buf, offset: cursor)
             fixedFields.append((key, fixedBeet))
 
             switch fixedBeet.value {
@@ -77,7 +77,7 @@ public class FixableBeetStruct<Class>: FixableBeet {
         }
     }
 
-    public func toFixedFromValue(val: Any) -> FixedSizeBeet {
+    public func toFixedFromValue(val: Any) throws -> FixedSizeBeet {
         let mirror = mirrored(value: val)
 
         var dictionary: [AnyHashable: Any] = [:]
@@ -91,7 +91,7 @@ public class FixableBeetStruct<Class>: FixableBeet {
             case .fixedBeet(let type):
                 fixedFields.append((f.type, type))
             case .fixableBeat(let type):
-                fixedFields.append((f.type, type.toFixedFromValue(val: dictionary[f.type]!)))
+                fixedFields.append((f.type, try type.toFixedFromValue(val: dictionary[f.type]!)))
             }
         }
 
@@ -112,13 +112,13 @@ public class FixableBeetArgsStruct<Class>: FixableBeetStruct<Args> {
         }
     }
 
-    override public func toFixedFromData(buf: Data, offset: Int) -> FixedSizeBeet {
+    override public func toFixedFromData(buf: Data, offset: Int) throws -> FixedSizeBeet {
         var cursor = offset
         var fixedFields: [FixedBeetField] = []
 
         for i in 0..<self.fields.count {
             let (key, beet) = self.fields[i]
-            let fixedBeet = fixBeetFromData(beet: beet, buf: buf, offset: cursor)
+            let fixedBeet = try fixBeetFromData(beet: beet, buf: buf, offset: cursor)
             fixedFields.append((key, fixedBeet))
 
             switch fixedBeet.value {
@@ -135,7 +135,7 @@ public class FixableBeetArgsStruct<Class>: FixableBeetStruct<Args> {
         }
     }
 
-    override public func toFixedFromValue(val: Any) -> FixedSizeBeet {
+    override public func toFixedFromValue(val: Any) throws -> FixedSizeBeet {
         let mirror = mirrored(value: val)
 
         var dictionary: [AnyHashable: Any] = [:]
@@ -149,7 +149,7 @@ public class FixableBeetArgsStruct<Class>: FixableBeetStruct<Args> {
             case .fixedBeet(let type):
                 fixedFields.append((f.type, type))
             case .fixableBeat(let type):
-                fixedFields.append((f.type, type.toFixedFromValue(val: dictionary[f.type]!)))
+                fixedFields.append((f.type, try type.toFixedFromValue(val: dictionary[f.type]!)))
             }
         }
 

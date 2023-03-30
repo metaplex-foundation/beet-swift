@@ -1,19 +1,19 @@
 import Foundation
 
-func fixBeetFromData(beet: Beet, buf: Data, offset: Int) -> FixedSizeBeet {
+func fixBeetFromData(beet: Beet, buf: Data, offset: Int) throws -> FixedSizeBeet {
     switch beet {
     case .fixedBeet(let fixedSizeBeet):
         return fixedSizeBeet
     case .fixableBeat(let fixableBeet):
-        return fixableBeet.toFixedFromData(buf: buf, offset: offset)
+        return try fixableBeet.toFixedFromData(buf: buf, offset: offset)
     }
 }
 
-func fixBeetFromValue<V>(beet: Beet, val: V) -> FixedSizeBeet {
+func fixBeetFromValue<V>(beet: Beet, val: V) throws -> FixedSizeBeet {
     switch beet {
     case .fixedBeet(let fixedSizeBeet):
         return fixedSizeBeet
     case .fixableBeat(let fixableBeet):
-        return fixableBeet.toFixedFromValue(val: val)
+        return try fixableBeet.toFixedFromValue(val: val)
     }
 }

@@ -10,8 +10,8 @@ final class vecsTests: XCTestCase {
             switch fixture.value {
             case .arrayInt(let numbers):
                 let u8numbers = numbers.map { UInt8($0) }
-                checkFixedSerialization(fixedBeet: beet.toFixedFromValue(val: u8numbers), value: u8numbers, data: Data(fixture.data), description: "")
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: u8numbers, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet:try! beet.toFixedFromValue(val: u8numbers), value: u8numbers, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: u8numbers, data: Data(fixture.data), description: "")
             default:
                 XCTFail()
             }
@@ -39,11 +39,11 @@ final class vecsTests: XCTestCase {
             case .arrayInt(let numbers):
                 let u8numbers = numbers.map { UInt8($0) }
                 let strings = Data(u8numbers).bytes
-                checkFixedSerialization(fixedBeet: beet.toFixedFromValue(val: strings), value: strings, data: Data(fixture.data), description: "")
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: strings, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromValue(val: strings), value: strings, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: strings, data: Data(fixture.data), description: "")
             case .arrayString(let strings):
-                checkFixedSerialization(fixedBeet: beet.toFixedFromValue(val: strings), value: strings, data: Data(fixture.data), description: "")
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: strings, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromValue(val: strings), value: strings, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: strings, data: Data(fixture.data), description: "")
             default:
                 break
             }

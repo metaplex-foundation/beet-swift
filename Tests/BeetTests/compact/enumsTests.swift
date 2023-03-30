@@ -107,7 +107,7 @@ final class enumsTests: XCTestCase {
     func testCompatDirectionsUsingInt() {
         let beet = FixedSizeBeet(value: .scalar(FixedScalarEnum<Directions>()))
         var buf = Data(count: Int(beet.byteSize))
-        beet.write(buf: &buf, offset: 0, value: Directions.Down)
+        try! beet.write(buf: &buf, offset: 0, value: Directions.Down)
         checkFixedSerialization(fixedBeet: beet, value: Directions.Down, data: Data([0x02]), description: "")
         checkFixedSerialization(fixedBeet: beet, value: Directions.Down, data: Data([0x02]), description: "")
     }

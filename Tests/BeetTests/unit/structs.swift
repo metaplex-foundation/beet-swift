@@ -49,16 +49,16 @@ final class structsTests: XCTestCase {
     }
     
     func testStructRoundtripOneNumberOnlyStruct() {
-        let (buf, _) = GameScore.struct.serialize(instance: gs1)
-        let (deserialized, offset) = GameScore.struct.deserialize(buffer: buf)
+        let (buf, _) = try! GameScore.struct.serialize(instance: gs1)
+        let (deserialized, offset) = try! GameScore.struct.deserialize(buffer: buf)
         XCTAssertEqual(UInt(offset), GameScore.struct.byteSize)
         XCTAssertEqual(gs1, deserialized)
     }
     
     func testStructRoundtripTwoNumbersOnlyStructs() {
-        let buf = GameScore.struct.serialize(instance: gs1).0 + GameScore.struct.serialize(instance: gs2).0
-        let (first, firstOffset) = GameScore.struct.deserialize(buffer: buf)
-        let (second, secondOffset) = GameScore.struct.deserialize(buffer: buf, offset: firstOffset)
+        let buf = try! GameScore.struct.serialize(instance: gs1).0 + GameScore.struct.serialize(instance: gs2).0
+        let (first, firstOffset) = try! GameScore.struct.deserialize(buffer: buf)
+        let (second, secondOffset) = try! GameScore.struct.deserialize(buffer: buf, offset: firstOffset)
         
         XCTAssertEqual(UInt(firstOffset), GameScore.struct.byteSize)
         XCTAssertEqual(UInt(secondOffset), GameScore.struct.byteSize * 2)

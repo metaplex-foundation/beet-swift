@@ -25,9 +25,9 @@ func checkCases<U: Equatable>(
 
             switch beet.value {
             case .scalar(let type):
-                type.write(buf: &buf, offset: offset, value: x)
+                try! type.write(buf: &buf, offset: offset, value: x)
             case .collection(let type):
-                type.write(buf: &buf, offset: offset, value: x)
+                try! type.write(buf: &buf, offset: offset, value: x)
             }
             
             print("Buff: \(buf)")
@@ -35,9 +35,9 @@ func checkCases<U: Equatable>(
             var n: U
             switch beet.value {
             case .scalar(let type):
-                n = type.read(buf: buf, offset: offset)
+                n = try! type.read(buf: buf, offset: offset)
             case .collection(let type):
-                n = type.read(buf: buf, offset: offset)
+                n = try! type.read(buf: buf, offset: offset)
             }
             print("N: \(n)")
             XCTAssertEqual(x, n)

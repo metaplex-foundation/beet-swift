@@ -9,9 +9,9 @@ final class optionsTests: XCTestCase {
         for fixture in fixtures["u8s"]! {
             switch fixture.value {
             case .number(let number):
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: UInt8(number), data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: UInt8(number), data: Data(fixture.data), description: "")
             case .none:
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: Optional<UInt8>.none, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: Optional<UInt8>.none, data: Data(fixture.data), description: "")
             default:
                 XCTFail()
             }
@@ -24,9 +24,9 @@ final class optionsTests: XCTestCase {
         for fixture in fixtures["strings"]! {
             switch fixture.value {
             case .string(let string):
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: string, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: string, data: Data(fixture.data), description: "")
             case .none:
-                checkFixedSerialization(fixedBeet: beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: Optional<String>.none, data: Data(fixture.data), description: "")
+                checkFixedSerialization(fixedBeet: try! beet.toFixedFromData(buf: Data(fixture.data), offset: 0), value: Optional<String>.none, data: Data(fixture.data), description: "")
             default:
                 XCTFail()
             }
